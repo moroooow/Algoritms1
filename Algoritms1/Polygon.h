@@ -32,7 +32,7 @@ namespace polygon
 	{
 		std::vector<Point> points;
 	};
-
+	
 	std::ostream& operator<<(std::ostream& out, const Polygon& data);
 	std::ostream& operator<<(std::ostream& out, const Point& data);
 	std::istream& operator>>(std::istream& in, Polygon& data);
@@ -40,12 +40,23 @@ namespace polygon
 	std::istream& operator>>(std::istream& in, DelimiterIO&& dest);
 
 
-	struct Optional
+	struct OptionalArea
 	{
 		int operator()(std::string& str)const;
 	};
 
-	double getArea(const polygon::Polygon& poly);
-	double calculateArea(std::vector<Polygon>& data, int& mode);
+	struct OptionalCount
+	{
+		int operator()(std::string& str)const;
+	};
+
+	double maxArea(std::vector<Polygon>& data);
+	int maxVertexes(std::vector<Polygon>& data);
+	int minVertexes(std::vector<Polygon>& data);
+	double minArea(std::vector<Polygon>& data);
+	double calculateArea(const polygon::Polygon& poly);
+	double accArea(std::vector<Polygon>& data, std::string str);
+	int count(std::vector<Polygon>& data, std::string str);
+
 }
 #endif // !POLYGON

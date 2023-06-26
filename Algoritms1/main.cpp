@@ -32,10 +32,7 @@ int main()
 		
 	try
 	{
-		std::string str = "ODD";
-		polygon::Optional opt;
-		int mode = opt(str);
-		std::cout << polygon::calculateArea(poly,mode);
+		std::cout<<polygon::count(poly,"3");
 	}
 	catch (...)
 	{
