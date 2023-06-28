@@ -4,8 +4,7 @@
 
 namespace polygon
 {
-
-	std::ostream& polygon::operator<<(std::ostream& out, const Polygon& data)
+	std::ostream& operator<<(std::ostream& out, const Polygon& data)
 	{
 		std::copy(std::cbegin(data.points),
 			std::cend(data.points),
@@ -13,12 +12,12 @@ namespace polygon
 		return out;
 	}
 
-	std::ostream& polygon::operator<<(std::ostream& out, const Point& data)
+	std::ostream& operator<<(std::ostream& out, const Point& data)
 	{
 		out << '(' << data.x << ';' << data.y << ')' << " ";
 		return out;
 	}
-	std::istream& polygon::operator>>(std::istream& in, Polygon& data)
+	std::istream& operator>>(std::istream& in, Polygon& data)
 	{
 		std::istream::sentry sentry(in);
 		if (!sentry)
@@ -47,6 +46,18 @@ namespace polygon
 		}
 		if (in && (in.peek() == '\n' || in.eof()) && tmp.points.size() == count)
 		{
+			std::sort(tmp.points.begin(), tmp.points.end(),
+				[](Point& a, Point& b)
+				{
+					if (a.x != b.x)
+					{
+						return a.x < b.x;
+					}
+					else
+					{
+						return a.y < b.y;
+					}
+				});
 			data = tmp;
 		}
 		else
@@ -56,7 +67,7 @@ namespace polygon
 		return in;
 	}
 
-	std::istream& polygon::operator>>(std::istream& in, Point& data)
+	std::istream& operator>>(std::istream& in, Point& data)
 	{
 		std::istream::sentry sentry(in);
 		if (!sentry)
@@ -74,7 +85,7 @@ namespace polygon
 		return in;
 	}
 
-	std::istream& polygon::operator>>(std::istream& in, DelimiterIO&& dest) {
+	std::istream& operator>>(std::istream& in, DelimiterIO&& dest) {
 		std::istream::sentry sentry(in);
 		if (!sentry)
 		{
@@ -89,7 +100,7 @@ namespace polygon
 		return in;
 	}
 
-	double polygon::accArea(std::vector<Polygon>& data, std::string str)
+	double accArea(std::vector<Polygon>& data, std::string str)
 	{
 		polygon::OptionalArea t;
 		int opt = t(str);
@@ -150,13 +161,12 @@ namespace polygon
 		}
 		else
 		{
-			throw "<INVALID COMMAND>";
-			return 0;
+			throw PolygonException("INVALID COMMAND");
 		}
 		return sum;
 	}
 
-	double polygon::calculateArea(const Polygon& poly)
+	double calculateArea(const Polygon& poly)
 	{
 		double a = std::accumulate(poly.points.begin(), poly.points.cend(), 0.0,
 			[&](double innerAcc, const polygon::Point& p) {
@@ -167,7 +177,7 @@ namespace polygon
 		return abs(a) * 0.5;
 	}
 
-	int polygon::OptionalArea::operator()(std::string& str) const
+	int OptionalArea::operator()(std::string& str) const
 	{
 		if (str == "ODD")
 		{
@@ -203,7 +213,7 @@ namespace polygon
 		}
 	}
 
-	int polygon::OptionalCount::operator()(std::string& str) const
+	int OptionalCount::operator()(std::string& str) const
 	{
 		if (str == "ODD")
 		{
@@ -235,7 +245,7 @@ namespace polygon
 		}
 	}
 
-	int polygon::maxVertexes(std::vector<Polygon>& data)
+	int maxVertexes(std::vector<Polygon>& data)
 	{
 		Polygon tmp = *std::max_element(data.begin(), data.end(),
 			[](const Polygon& a, const Polygon& b)
@@ -245,7 +255,7 @@ namespace polygon
 		return tmp.points.size();
 	}
 
-	int polygon::minVertexes(std::vector<Polygon>& data)
+	int minVertexes(std::vector<Polygon>& data)
 	{
 		Polygon tmp = *std::min_element(data.begin(), data.end(),
 			[](const Polygon& a, const Polygon& b)
@@ -265,7 +275,7 @@ namespace polygon
 		return calculateArea(tmp);
 	};
 
-	double polygon::minArea(std::vector<Polygon>& data)
+	double minArea(std::vector<Polygon>& data)
 	{
 		Polygon tmp = *std::min_element(data.begin(), data.end(),
 			[](const Polygon& a, const Polygon& b)
@@ -275,7 +285,7 @@ namespace polygon
 		return calculateArea(tmp);
 	}
 
-	int polygon::count(std::vector<Polygon>& data, std::string str)
+	int count(std::vector<Polygon>& data, std::string str)
 	{
 		OptionalCount t;
 		int opt = t(str);
@@ -283,7 +293,7 @@ namespace polygon
 		if (opt == -1)
 		{
 			return std::count_if(data.begin(), data.end(),
-				[&](const Polygon& a)
+				[](const Polygon& a)
 				{
 					return a.points.size() % 2 == 1;
 				});
@@ -291,14 +301,14 @@ namespace polygon
 		else if (opt == -2)
 		{
 			return std::count_if(data.begin(), data.end(),
-				[&](const Polygon& a)
+				[](const Polygon& a)
 				{
 					return a.points.size() % 2 == 0;
 				});
 		}
 		else if (opt == 0)
 		{
-			throw "Incorrect num of vertexes";
+			throw PolygonException("INVALID COMMAND");
 			return 0;
 		}
 		else
@@ -309,5 +319,45 @@ namespace polygon
 					return a.points.size() == opt;
 				});
 		}
+	}
+
+	int countPerms(Polygon& data,std::vector<Polygon>& src)
+	{
+		return std::count_if(src.begin(), src.end(),
+			[&](Polygon& a)
+			{
+				return a == data;
+			});
+	}
+
+	bool operator==(Point a,  Point b)
+	{
+		return (a.x == b.x) && (a.y == b.y);
+	}
+
+	bool operator==(Polygon a,Polygon b)
+	{
+		return a.points == b.points;
+	}
+
+	int maxSeq(Polygon& data, std::vector<Polygon>& src)
+	{
+		int max;
+		int sum = std::accumulate(src.begin(), src.end(),0,
+			[&](int acc, Polygon pol)
+			{
+				if (data == pol)
+				{
+					return acc + 1;
+				}
+				else
+				{
+					max = std::max(acc, max);
+					acc = 0;
+					return acc;
+				}
+			});
+		max = std::max(sum, max);
+		return max;
 	}
 }
